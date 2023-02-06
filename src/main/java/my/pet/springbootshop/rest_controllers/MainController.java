@@ -2,7 +2,6 @@ package my.pet.springbootshop.rest_controllers;
 
 import my.pet.springbootshop.models.entities.*;
 import my.pet.springbootshop.models.repositories.*;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,8 +76,8 @@ public class MainController {
     // изменение количества продукта
     @PatchMapping("/products")
     @PreAuthorize("hasAnyAuthority('admin')")
-    public ResponseEntity<Product> addProduct(@RequestParam("product_id") long id,
-                                              @RequestParam("count") int count){
+    public ResponseEntity<Product> changeProductCount(@RequestParam("product_id") long id,
+                                                      @RequestParam("count") int count){
         if(productRepository.findById(id).isPresent()){
             Product product = productRepository.findById(id).get();
             product.setCount(count);
@@ -130,10 +129,10 @@ public class MainController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
+    //добавление товара в корзину
     @PostMapping("/cart")
     @PreAuthorize("hasAuthority('user')")
-    public ResponseEntity<Category> addCategory(@RequestParam("product_id") long product_id,
+    public ResponseEntity<Cart> addToCart(@RequestParam("product_id") long product_id,
                                                 @RequestParam("count") int count,
                                                 Authentication authentication){
         Cart cart = new Cart();
