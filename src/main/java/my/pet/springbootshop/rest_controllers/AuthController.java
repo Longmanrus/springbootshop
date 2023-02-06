@@ -70,8 +70,8 @@ public class AuthController {
     public ResponseEntity<?> registration (@RequestBody RegistrationRequestDTO requestDTO){
 
 
-        if (usersRepository.findByUsername(requestDTO.getUsername()).isEmpty() ||
-            usersRepository.findByEmail(requestDTO.getEmail()).isEmpty()){
+        if (usersRepository.existsByUsername(requestDTO.getUsername()) ||
+            usersRepository.existsByEmail(requestDTO.getEmail())){
 
             User user = new User();
             user.setUsername(requestDTO.getUsername());

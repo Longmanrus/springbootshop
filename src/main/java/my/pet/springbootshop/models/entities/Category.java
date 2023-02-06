@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 @Entity
 @Table(name = "categories")
 public class Category {
@@ -24,6 +26,7 @@ public class Category {
     private String title;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")
+    @ToString.Exclude
     private Set<Product> products = new HashSet<>();
     @JsonManagedReference
     public Set<Product> getProducts() {

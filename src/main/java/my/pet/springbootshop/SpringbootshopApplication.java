@@ -1,9 +1,11 @@
 package my.pet.springbootshop;
 
+import my.pet.springbootshop.models.entities.Cart;
 import my.pet.springbootshop.models.enums.Role;
 import my.pet.springbootshop.models.entities.Category;
 import my.pet.springbootshop.models.entities.Product;
 import my.pet.springbootshop.models.entities.User;
+import my.pet.springbootshop.models.repositories.CartRepository;
 import my.pet.springbootshop.models.repositories.CategoryRepository;
 import my.pet.springbootshop.models.repositories.ProductRepository;
 import my.pet.springbootshop.models.repositories.UsersRepository;
@@ -13,17 +15,22 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.sql.SQLException;
+
 @SpringBootApplication
 public class SpringbootshopApplication {
 
 	private final UsersRepository usersRepository;
 	private final ProductRepository productRepository;
 	private final CategoryRepository categoryRepository;
+	private final CartRepository cartRepository;
 	@Autowired
-	public SpringbootshopApplication(UsersRepository usersRepository, ProductRepository productRepository, CategoryRepository categoryRepository) {
+	public SpringbootshopApplication(UsersRepository usersRepository, ProductRepository productRepository, CategoryRepository categoryRepository,
+									 CartRepository cartRepository) {
 		this.usersRepository = usersRepository;
 		this.productRepository = productRepository;
 		this.categoryRepository = categoryRepository;
+		this.cartRepository = cartRepository;
 	}
 
 	public static void main(String[] args) {
@@ -43,19 +50,12 @@ public class SpringbootshopApplication {
 			user2.setPassword("$2a$12$HkzRVrg0Zql8KfZaxz1UbebihueW3VZ/WtrfjzsZnBrrrrTywHgjS");
 			user2.setUsername("user");
 
-			usersRepository.save(user1);
-			usersRepository.save(user2);
-
 			Category cater1 = new Category();
 			cater1.setTitle("Телевизоры");
 			Category cater2 = new Category();
 			cater2.setTitle("Телефоны");
 			Category cater3 = new Category();
 			cater3.setTitle("Клавиатуры");
-
-			categoryRepository.save(cater1);
-			categoryRepository.save(cater2);
-			categoryRepository.save(cater3);
 
 			Product product1 = new Product();
 			product1.setTitle("Philips B100500");
@@ -73,8 +73,37 @@ public class SpringbootshopApplication {
 			product2.setCount(2);
 			product2.setCategory(cater3);
 
-			productRepository.save(product1);
-			productRepository.save(product2);
+			Cart cart1 = new Cart();
+			cart1.setUser(user1);
+			cart1.setProduct(product1);
+			cart1.setCount(4);
+			Cart cart2 = new Cart();
+			cart2.setUser(user1);
+			cart2.setProduct(product2);
+			cart2.setCount(3);
+
+
+
+
+			try {
+				usersRepository.save(user1);
+				usersRepository.save(user2);
+
+				categoryRepository.save(cater1);
+				categoryRepository.save(cater2);
+				categoryRepository.save(cater3);
+
+				productRepository.save(product1);
+				productRepository.save(product2);
+
+				cartRepository.save(cart1);
+				cartRepository.save(cart2);
+
+			} catch (Exception e){
+				System.out.println("Тестовые данные уже есть в DB");
+			}
+
+
 
 
 

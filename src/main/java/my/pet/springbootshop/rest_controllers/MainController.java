@@ -1,11 +1,8 @@
 package my.pet.springbootshop.rest_controllers;
 
-import my.pet.springbootshop.models.entities.Category;
-import my.pet.springbootshop.models.entities.Product;
-import my.pet.springbootshop.models.entities.User;
-import my.pet.springbootshop.models.repositories.CategoryRepository;
-import my.pet.springbootshop.models.repositories.ProductRepository;
-import my.pet.springbootshop.models.repositories.UsersRepository;
+import my.pet.springbootshop.models.entities.*;
+import my.pet.springbootshop.models.repositories.*;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /*
@@ -27,11 +25,19 @@ public class MainController {
     private final UsersRepository usersRepository;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final CartRepository cartRepository;
+    private final OrderRepository orderRepository;
+    private final OrderProductRepository orderProductRepository;
     @Autowired
-    public MainController(UsersRepository usersRepository, ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public MainController(UsersRepository usersRepository, ProductRepository productRepository,
+                          CategoryRepository categoryRepository, CartRepository cartRepository,
+                          OrderRepository orderRepository, OrderProductRepository orderProductRepository) {
         this.usersRepository = usersRepository;
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.cartRepository = cartRepository;
+        this.orderRepository = orderRepository;
+        this.orderProductRepository = orderProductRepository;
     }
 
 
@@ -113,6 +119,54 @@ public class MainController {
         categoryRepository.save(category);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
+    // Выдача корзины аутентифицированному юзеру
+    @GetMapping("/cart")
+    @PreAuthorize("hasAuthority('user')")
+    public ResponseEntity<?> getUserCart(Authentication authentication){
+        List<Cart> cart = cartRepository.findAllByUserId(usersRepository.findByUsername(authentication.getName()).get().getId());
+        if (!cart.isEmpty()) {
+            return new ResponseEntity<>(cart, HttpStatus.OK);
+        }else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/cart")
+    @PreAuthorize("hasAuthority('user')")
+    public ResponseEntity<Category> addCategory(@RequestParam("product_id") long product_id,
+                                                @RequestParam("count") int count,
+                                                Authentication authentication){
+        Cart cart = new Cart();
+        cart.setUser(usersRepository.findByUsername(authentication.getName()).orElseThrow(NoSuchElementException::new));
+        cart.setProduct(productRepository.findById(product_id).orElse(null));
+        cart.setCount(count);
+        cartRepository.save(cart);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+    // создание заказа
+    @PostMapping("/order")
+    @PreAuthorize("hasAuthority('user')")
+    public ResponseEntity<Category> createOrder (Authentication authentication){
+        Optional<User> user = usersRepository.findByUsername(authentication.getName());
+        Order order = new Order();
+        order.setUser(user.orElseThrow(NoSuchElementException::new));
+        orderRepository.save(order);
+        List<Cart> carts = cartRepository.findAllByUserId(user.get().getId());
+        carts.forEach(cart -> {
+            OrderProduct orderProduct = new OrderProduct();
+            orderProduct.setOrder(order);
+            orderProduct.setProduct(cart.getProduct());
+            orderProduct.setCount(cart.getCount());
+            orderProductRepository.save(orderProduct);
+        });
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+
+
+
+
 
 
 

@@ -1,17 +1,23 @@
 package my.pet.springbootshop.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import my.pet.springbootshop.models.enums.Role;
 import my.pet.springbootshop.models.enums.UserStatus;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 @Entity
 @Table(name = "users")
 public class User {
@@ -34,6 +40,22 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private UserStatus userStatus = UserStatus.ACTIVE;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @ToString.Exclude
+    private Set<Cart> carts = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @ToString.Exclude
+    private Set<Order> orders = new HashSet<>();
+    @JsonManagedReference
+    public Set<Order> getOrders() {
+        return orders;
+    }
+    @JsonManagedReference
+    public Set<Cart> getCarts() {
+        return carts;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -47,16 +69,4 @@ public class User {
         return Objects.hash(id, username, password, email, role, rating, userStatus);
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", role=" + role +
-                ", rating=" + rating +
-                ", userStatus=" + userStatus +
-                '}';
-    }
 }
